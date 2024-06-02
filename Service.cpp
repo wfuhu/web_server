@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 #include <sys/sendfile.h>
+#include <dirent.h>
 int initListenFd(unsigned short port)
 {
     // 1.创建监听的fd
@@ -184,8 +185,8 @@ int parseRequestLine(const char *line, int cfd)
     int ret = stat(file, &st);
     if (ret == -1)
     {
-        sendHeadMsg(cfd, 404, "not found", getFileType(".html"),-1);
-        sendFile("404.html",cfd);
+        sendHeadMsg(cfd, 404, "not found", getFileType(".html"), -1);
+        sendFile("404.html", cfd);
         return 0;
         // 文件不存在
     }
@@ -197,8 +198,8 @@ int parseRequestLine(const char *line, int cfd)
     else
     {
         // 文件传送客户端
-        sendHeadMsg(cfd,200,"OK",getFileType(file),st.st_size);
-        sendFile(file,cfd);
+        sendHeadMsg(cfd, 200, "OK", getFileType(file), st.st_size);
+        sendFile(file, cfd);
     }
     return 0;
 }
@@ -262,53 +263,82 @@ const char *getFileType(const char *name)
     {
         return "image/jpeg";
     }
-    if (strcmp(dot, ".gif") == 0 )
+    if (strcmp(dot, ".gif") == 0)
     {
         return "image/png";
     }
-    if (strcmp(dot, ".css") == 0 )
+    if (strcmp(dot, ".css") == 0)
     {
         return "text/css";
     }
-    if (strcmp(dot, ".au") == 0 )
+    if (strcmp(dot, ".au") == 0)
     {
         return "audio/basic";
     }
-if (strcmp(dot, ".wav") == 0 )
+    if (strcmp(dot, ".wav") == 0)
     {
         return "audio/wav";
     }
-    if (strcmp(dot, ".avi") == 0 )
+    if (strcmp(dot, ".avi") == 0)
     {
         return "video/xmsvideo";
     }
-    if (strcmp(dot, ".mov") == 0 ||strcmp(dot, ".qt") == 0)
+    if (strcmp(dot, ".mov") == 0 || strcmp(dot, ".qt") == 0)
     {
         return "video/quicktime";
     }
-     if (strcmp(dot, ".mpeg") == 0 ||strcmp(dot, ".mpe") == 0)
+    if (strcmp(dot, ".mpeg") == 0 || strcmp(dot, ".mpe") == 0)
     {
         return "video/mpeg";
     }
-     if (strcmp(dot, ".vrml") == 0 ||strcmp(dot, ".wrl") == 0)
+    if (strcmp(dot, ".vrml") == 0 || strcmp(dot, ".wrl") == 0)
     {
         return "model/vrml";
     }
-     if (strcmp(dot, ".midi") == 0 ||strcmp(dot, ".mid") == 0)
+    if (strcmp(dot, ".midi") == 0 || strcmp(dot, ".mid") == 0)
     {
         return "audio/midi";
     }
-     if (strcmp(dot, ".mp3") == 0 )
+    if (strcmp(dot, ".mp3") == 0)
     {
         return "audi/peg";
     }
-    if (strcmp(dot, ".ogg") == 0 )
+    if (strcmp(dot, ".ogg") == 0)
     {
         return "applocation/ogg";
     }
-    if (strcmp(dot, ".pac") == 0 )
+    if (strcmp(dot, ".pac") == 0)
     {
         return "application/x-ns-proxy-autoconfig";
     }
     return "text/plain:charset=utf-8";
+}
+
+int sedDir(const char *dirName, int cfd)
+{
+    char buf[4096];
+    struct dirent **nameList;
+
+    int num = scandir(dirName, &nameList, NULL, alphasort);
+    for (size_t i = 0; i < num; i++)
+    {
+        char *name = nameList[i]->d_name; // 指针数组  struct dirent tem[]
+        struct stat st;
+        char subPath[1024]{0};
+        sprintf(subPath, "%s/%s", dirName, name);
+        stat(subPath, &st);
+        if (S_ISDIR(st.st_mode))
+        {
+        }
+        else
+        {
+        }
+        delete[] nameList[i];
+        nameList[i] = nullptr;
+    }
+
+    delete nameList;
+    nameList = nullptr;
+
+    return 0;
 }

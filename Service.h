@@ -20,3 +20,5 @@ int sendHeadMsg(int cfd,int status,const char* descr,const char* type,int length
 //根据文件后缀获取类型
 const char* getFileType(const char* name);
 
+//发送目录
+int sedDir(const char* dirName,int cfd);
