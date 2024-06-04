@@ -194,6 +194,8 @@ int parseRequestLine(const char *line, int cfd)
     if (S_ISDIR(st.st_mode))
     {
         // 目录传送给客户端
+        sendHeadMsg(cfd, 200, "OK", getFileType(".html"), -1);
+        sendDir(file,cfd);
     }
     else
     {
@@ -317,6 +319,8 @@ const char *getFileType(const char *name)
 int sedDir(const char *dirName, int cfd)
 {
     char buf[4096];
+    sprintf(buf,"<html><head><title>%s</title></head><body><table>",dirName);
+
     struct dirent **nameList;
 
     int num = scandir(dirName, &nameList, NULL, alphasort);
@@ -329,14 +333,22 @@ int sedDir(const char *dirName, int cfd)
         stat(subPath, &st);
         if (S_ISDIR(st.st_mode))
         {
+            sprintf(buf+strlen(buf),
+            "<tr><td><a href=\"%s/\">%s</a></td><td>%ld</td></tr>",
+            name,name,st.st_size);
         }
         else
         {
+            sprintf(buf+strlen(buf),
+            "<tr><td><a href=\"%s\">%s</a></td><td>%ld</td></tr>",
+            name,name,st.st_size);
         }
+        send(cfd,buf,sizeof buf,0);
+        memset(buf,0,sizeof( buf));
         delete[] nameList[i];
         nameList[i] = nullptr;
     }
-
+    sprintf(buf,"</table></body></html>");
     delete nameList;
     nameList = nullptr;
 
