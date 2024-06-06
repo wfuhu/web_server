@@ -1,4 +1,4 @@
-#include "Service.h"
+#include "Server.h"
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <fcntl.h>
@@ -27,7 +27,7 @@ int initListenFd(unsigned short port)
     }
 
     // 2.设置端口复用
-    int opt = -1;
+    int opt = 1;
     int ret = setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt);
 
     if (ret == -1)
@@ -212,8 +212,8 @@ int parseRequestLine(const char *line, int cfd)
 {
     printf("解析行");
     // 解析请求行 正则匹配  get方法  /xxx/1.jpg http/1.1
-    char method[12]={'0'};
-    char path[1024]={'0'};
+    char method[12];
+    char path[1024];
     sscanf(line, "%[^ ] %[^ ]", method, path);
     printf("method:%s,path:%s\n",method,path);
     if (strcasecmp(method, "get") != 0)
@@ -272,7 +272,7 @@ int acceptClient(int lfd,int epfd)
     // cfd添加到epoll
     struct epoll_event ev;
     ev.data.fd = cfd;
-    ev.events = EPOLLIN ;
+    ev.events = EPOLLIN | EPOLLET;
     int ret = epoll_ctl(epfd, EPOLL_CTL_ADD, cfd, &ev);
 
     if (ret == -1)
